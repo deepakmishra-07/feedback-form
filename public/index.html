@@ -1,44 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Feedback System</title>
-    <!-- Bootstrap CDN -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Feedback System</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      background-image: url('1358905.png'); /* Place image in public/images/ */
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      margin-top: 50px;
+      max-width: 600px;
+    }
+
+    .feedback-buttons {
+      margin-top: 15px;
+    }
+
+    #viewFeedbackSection {
+      display: none;
+    }
+
+    .btn-custom {
+      margin-right: 10px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container py-5">
-        <!-- Feedback Submission Form -->
-        <div class="card shadow-lg p-4 mx-auto" style="max-width: 600px;">
-            <h2 class="text-center mb-4 text-primary">Submit Your Feedback</h2>
-            <form id="feedbackForm">
-                <div class="form-group">
-                    <input type="text" id="name" class="form-control" placeholder="Your Name" required>
-                </div>
-                <div class="form-group">
-                    <input type="email" id="email" class="form-control" placeholder="Your Email" required>
-                </div>
-                <div class="form-group">
-                    <textarea id="message" class="form-control" placeholder="Your Feedback" required></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">Submit Feedback</button>
-            </form>
-            <p id="responseMessage" class="mt-3 text-center font-weight-bold text-success"></p>
-        </div>
+  <div class="container">
+    <h2 class="text-center text-primary mb-4">Submit Your Feedback</h2>
+    <form id="feedbackForm">
+      <div class="form-group mb-3">
+        <input type="text" id="name" class="form-control" placeholder="Your Name" required />
+      </div>
+      <div class="form-group mb-3">
+        <input type="email" id="email" class="form-control" placeholder="Your Email" required />
+      </div>
+      <div class="form-group mb-3">
+        <textarea id="message" class="form-control" placeholder="Your Feedback" required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Submit Feedback</button>
+    </form>
 
-        <!-- Recent Feedback Section -->
-        <div class="card shadow-lg mt-5 p-4 mx-auto" style="max-width: 600px;">
-            <h3 class="text-center text-info">Recent Feedback</h3>
-            <ul id="feedbackList" class="list-group mt-3"></ul>
-        </div>
+    <p id="responseMessage" class="text-success text-center mt-3 fw-bold"></p>
+
+    <div class="text-center feedback-buttons">
+      <button id="viewFeedbackBtn" class="btn btn-info mt-3" style="display: none;">View Feedback</button>
     </div>
 
-    <!-- Bootstrap and Custom JS -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="script.js"></script>
+    <div id="viewFeedbackSection" class="mt-4">
+      <h4 class="text-info">Your Feedback:</h4>
+      <ul id="feedbackList" class="list-group mt-3"></ul>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    document.getElementById("feedbackForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const message = document.getElementById("message").value;
+
+      fetch("/submit-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, message })
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById("responseMessage").innerText = data.message;
+        document.getElementById("feedbackForm").reset();
+        document.getElementById("viewFeedbackBtn").style.display = "block";
+      })
+      .catch(error => console.error("Error:", error));
+    });
+
+    document.getElementById("viewFeedbackBtn").addEventListener("click", loadFeedback);
+
+    function loadFeedback() {
+      fetch("/view-feedback")
+        .then(response => response.json())
+        .then(data => {
+          const feedbackList = document.getElementById("feedbackList");
+          feedbackList.innerHTML = "";
+          document.getElementById("viewFeedbackSection").style.display = "block";
+
+          if (data.length > 0) {
+            const feedback = data[0];
+            const li = document.createElement("li");
+            li.className = "list-group-item d-flex justify-content-between align-items-center";
+            li.innerHTML = `<div><strong>${feedback.name}</strong>: ${feedback.message}</div>
+              <div>
+                <button class="btn btn-sm btn-warning btn-custom" onclick="editFeedback(${feedback.id}, '${feedback.name}', '${feedback.email}', '${feedback.message}')">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteFeedback(${feedback.id})">Delete</button>
+              </div>`;
+            feedbackList.appendChild(li);
+          }
+        })
+        .catch(error => console.error("Error:", error));
+    }
+
+    function editFeedback(id, name, email, message) {
+      document.getElementById("name").value = name;
+      document.getElementById("email").value = email;
+      document.getElementById("message").value = message;
+
+      document.getElementById("feedbackForm").onsubmit = function (e) {
+        e.preventDefault();
+        fetch(`/update-feedback/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: document.getElementById("name").value,
+            email: document.getElementById("email").value,
+            message: document.getElementById("message").value
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("responseMessage").innerText = data.message;
+          loadFeedback();
+          document.getElementById("feedbackForm").reset();
+        })
+        .catch(error => console.error("Error:", error));
+      };
+    }
+
+    function deleteFeedback(id) {
+      fetch(`/delete-feedback/${id}`, {
+        method: "DELETE"
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById("responseMessage").innerText = data.message;
+        document.getElementById("viewFeedbackSection").style.display = "none";
+        document.getElementById("viewFeedbackBtn").style.display = "none";
+      })
+      .catch(error => console.error("Error:", error));
+    }
+  </script>
 </body>
 </html>

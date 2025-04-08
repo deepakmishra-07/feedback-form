@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+        body {
+            background-image: url('admin_image.webp'); /* Replace with your image file */
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.95); /* Slight transparency for better readability */
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div id="loginSection" class="card mx-auto p-4 shadow" style="max-width: 400px;">
+            <h3 class="text-center">Admin Login</h3>
+            <input type="text" id="adminUser" class="form-control my-2" placeholder="Username">
+            <input type="password" id="adminPass" class="form-control my-2" placeholder="Password">
+            <button class="btn btn-primary btn-block" onclick="adminLogin()">Login</button>
+            <p id="loginError" class="text-danger mt-2 text-center"></p>
+        </div>
+
+        <div id="dashboardSection" style="display: none;">
+            <h3 class="text-center mb-4 text-white">All Feedback</h3>
+            <ul id="adminFeedbackList" class="list-group"></ul>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
